@@ -274,7 +274,10 @@ li {
 a {
   color: #42b983;
 }
-
+.calendar {
+  display: flex;
+  flex-direction: column;
+}
 .header {
   padding: 1em;
   display: flex;
@@ -310,12 +313,16 @@ a {
   display: flex;
 }
 .day {
-  height: 100px;
-  width: 100px;
+  min-height: 150px;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
 
   border: 1px solid rgb(143, 143, 143);
+}
+.day:hover {
+  cursor: pointer;
+  background: rgb(224, 224, 224);
 }
 </style>
