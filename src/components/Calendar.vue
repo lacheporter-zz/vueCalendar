@@ -3,19 +3,19 @@
 
 <template id ="calendar">
   <div class="calendar">
-    <div class="header">
+    <div class="weekdayHeader">
       <img class="logo" src="../assets/logo.png" />
       <a class="arrow" @click="previousYear">&laquo;</a>
-      <a class="arrow" @click="previousMonth">&lsaquo;</a>
+      <a class="arrow" @click="prevMonth">&lsaquo;</a>
       <span class="title" @click="selectedMonth">
-        {{ header.label }}
+        {{ weekdayHeader.label }}
       </span>
       <a class="arrow" @click="nextMonth">&rsaquo;</a>
       <a class="arrow" @click="nextYear">&raquo;</a>
     </div>
     <div class="weekdays">
       <div class="weekday" v-for="weekday in weekdays" :key="weekday.id">
-        {{ weekday.label_3 }}
+        {{ weekday.label }}
       </div>
     </div>
     <div class="week" v-for="week in weeks" :key="week.id">
@@ -33,31 +33,7 @@
 
 
 <script>
-//import data for the calendar
-const daysInMonths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-const weekdayList = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
-const monthList = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+//calendar data
 const current = new Date();
 const currentDate = {
   year: current.getFullYear(),
@@ -66,11 +42,11 @@ const currentDate = {
 };
 
 export default {
-  template: "#calendar",
-
+  name: "calendar",
   data() {
     return {
-      monthList: [
+      daysInMonths: [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+      monthNames: [
         "January",
         "February",
         "March",
@@ -84,7 +60,7 @@ export default {
         "November",
         "December",
       ],
-      weekdayList: [
+      weekdayNames: [
         "Sunday",
         "Monday",
         "Tuesday",
@@ -112,11 +88,12 @@ export default {
         (this.year % 4 === 0 && this.year % 100 !== 0) || this.year % 400 === 0
       );
     },
-
-    previousMonthComps() {
+    previousMonths() {
+      //if this month is the first month
       if (this.month === 1)
+        //return the days, months, and the year of the calendar
         return {
-          days: daysInMonths[11],
+          days: this.daysInMonths[11],
           month: 12,
           year: this.year - 1,
         };
@@ -124,100 +101,82 @@ export default {
         days:
           this.month === 3 && this.isLeapYear
             ? 29
-            : daysInMonths[this.month - 2],
+            : this.daysInMonths[this.month - 2],
         month: this.month - 1,
         year: this.year,
       };
     },
-
-    header() {
-      const month = this.monthList[this.monthIndex];
+    weekdayHeader() {
+      const month = this.monthNames[this.monthIndex];
       return {
-        month: month,
+        month,
         year: this.year,
-        label: month + " " + this.year,
+        label: month + " " + this.day + "," + this.year,
       };
     },
-
     months() {
-      return monthList.map((ml, i) => ({
+      //map through month names and pass to template
+      return this.monthNames.map((ml) => ({
         label: ml,
-        label_1: ml.substring(0, 1),
-        label_2: ml.substring(0, 2),
-        label_3: ml.substring(0, 3),
-        number: i + 1,
       }));
     },
-
     weekdays() {
-      return weekdayList.map((wl, i) => ({
+      //map through week names and pass to template
+      return this.weekdayNames.map((wl) => ({
         label: wl,
-        label_1: wl.substring(0, 1),
-        label_2: wl.substring(0, 2),
-        label_3: wl.substring(0, 3),
-        number: i + 1,
       }));
     },
-
     weeks() {
+      //create array of for weeks
       const weeks = [];
-      let previousMonth = true;
-      let thisMonth = false;
-      let nextMonth = false;
-      let day = this.previousMonthComps.days - this.firstWeekdayInMonth + 2;
-      let month = this.previousMonthComps.month;
-      let year = this.previousMonthComps.year;
-      // Cycle through each week of the month, up to 6 total
-      for (let w = 1; w <= 6 && !nextMonth; w++) {
-        // Cycle through each weekday
+      //initial values to keep track of start, end, day of month
+      let monthStarted = false;
+      let monthEnded = false;
+      let monthDay = 0;
+      // Cycle through weeks in month, should be 6 for a calendar view
+      for (let w = 1; w <= 6 && !monthEnded; w++) {
+        // Create array for days in a week
         const week = [];
+        // Cycle through days in a week, should be 7
         for (let d = 1; d <= 7; d++) {
           // We need to know when to start counting actual month days
-          if (previousMonth && d >= this.firstWeekdayInMonth) {
-            // Reset day/month/year counters
-            day = 1;
-            month = this.month;
-            year = this.year;
-            // ...and flag we're tracking actual month days
-            previousMonth = false;
-            thisMonth = true;
+          if (!monthStarted && d >= this.firstWeekdayInMonth) {
+            // Start the day counter
+            monthDay = 1;
+            // Start tracking month days
+            monthStarted = true;
+          } else if (monthStarted && !monthEnded) {
+            // Increment the day counter
+            monthDay += 1;
           }
 
-          // Append day info for the current week
+          // Append day info into week array
           week.push({
-            label: day && thisMonth ? day.toString() : "",
-            day,
-            weekday: d,
-            week: w,
-            month,
-            year,
-            date: new Date(year, month - 1, day),
-            beforeMonth: previousMonth,
-            afterMonth: nextMonth,
-            inMonth: thisMonth,
+            label: monthDay ? monthDay.toString() : "",
+            number: monthDay,
+            weekdayNumber: d,
+            weekNumber: w,
+            beforeMonth: !monthStarted,
+            afterMonth: monthEnded,
+            inMonth: monthStarted && !monthEnded,
             isToday:
-              day === currentDate.day &&
-              month === currentDate.month &&
-              year === currentDate.year,
-            isFirstDay: thisMonth && day === 1,
-            isLastDay: thisMonth && day === this.daysInMonth,
+              monthDay === currentDate.day &&
+              this.month === currentDate.month &&
+              this.year === currentDate.year,
+            isFirstDay: monthDay === 1,
+            isLastDay: monthDay === this.daysInMonth,
           });
 
-          // We've hit the last day of the month
-          if (thisMonth && day >= this.daysInMonth) {
-            thisMonth = false;
-            nextMonth = true;
-            day = 1;
-            month = this.nextMonth.month;
-            year = this.nextMonth.year;
-            // Still in the middle of the month (hasn't ended yet)
-          } else {
-            day++;
+          // Trigger end of month on the last day
+          if (monthStarted && !monthEnded && monthDay >= this.daysInMonth) {
+            monthDay = 0;
+            monthEnded = true;
           }
         }
         // Append week info for the month
         weeks.push(week);
       }
+      //Returns pushed weeks
       return weeks;
     },
 
@@ -226,7 +185,12 @@ export default {
     },
 
     daysInMonth() {
-      return daysInMonths[this.monthIndex];
+      //check if febuary is leap year
+      const isFebruary = this.month === 2;
+      const isLeapYear =
+        (this.year % 4 == 0 && this.year % 100 != 0) || this.year % 400 == 0;
+      if (isFebruary && isLeapYear) return 29;
+      return this.daysInMonths[this.monthIndex];
     },
   },
 
@@ -235,17 +199,21 @@ export default {
       this.month = currentDate.month;
       this.year = currentDate.year;
     },
-
-    //continue here//
     nextMonth() {
-      const { month, year } = this.nextMonth;
-      this.month = month;
-      this.year = year;
+      if (this.month < 12) {
+        this.month++;
+      } else {
+        this.month = 1;
+        this.year++;
+      }
     },
-    previousMonth() {
-      const { month, year } = this.previousMonth;
-      this.month = month;
-      this.year = year;
+    prevMonth() {
+      if (this.month > 1) {
+        this.month--;
+      } else {
+        this.month = 12;
+        this.year--;
+      }
     },
     nextYear() {
       this.year++;
@@ -277,9 +245,11 @@ a {
 .calendar {
   display: flex;
   flex-direction: column;
+  width: 75%;
+  height: 100%;
 }
-.header {
-  padding: 1em;
+.weekdayHeader {
+  padding: 0.5em;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -288,7 +258,7 @@ a {
 }
 .weekdays {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-between;
   background: #42b983;
   padding: 1rem;
 }
@@ -296,12 +266,14 @@ a {
   color: whitesmoke;
 }
 .title {
-  font-size: 18px;
+  font-size: 24px;
   color: white;
   margin-right: 10px;
+  margin-left: 10px;
+  font-weight: 500;
 }
 .arrow {
-  font-size: 2em;
+  font-size: 3em;
   margin: 5px;
   cursor: pointer;
 }
@@ -311,18 +283,19 @@ a {
 }
 .week {
   display: flex;
+  height: 100%;
 }
 .day {
-  min-height: 150px;
+  height: 100%;
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-
   border: 1px solid rgb(143, 143, 143);
 }
 .day:hover {
   cursor: pointer;
-  background: rgb(224, 224, 224);
+  background: #42b98325;
+  transition: 0.1s;
 }
 </style>
