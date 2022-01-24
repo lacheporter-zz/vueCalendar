@@ -4,10 +4,12 @@
 <template id ="calendar">
   <div class="calendar">
     <div class="weekdayHeader">
+      <p>{{ start }}</p>
+      <p>{{ end }}</p>
       <img class="logo" src="../assets/logo.png" />
       <a class="arrow" @click="previousYear">&laquo;</a>
       <a class="arrow" @click="prevMonth">&lsaquo;</a>
-      <span class="title" @click="selectedMonth">
+      <span class="title">
         {{ weekdayHeader.label }}
       </span>
       <a class="arrow" @click="nextMonth">&rsaquo;</a>
@@ -24,8 +26,9 @@
         :class="{ today: day.isToday, 'not-in-month': !day.inMonth }"
         v-for="day in week"
         :key="day.id"
+        @click="selectDay(day.label)"
       >
-        {{ day[dayKey] }}
+        {{ day.label }}
       </div>
     </div>
   </div>
@@ -74,11 +77,7 @@ export default {
       year: currentDate.year,
     };
   },
-
-  props: {
-    dayKey: { type: String, default: "label" },
-  },
-
+  props: ["start", "end"],
   computed: {
     monthIndex() {
       return this.month - 1;
@@ -111,7 +110,7 @@ export default {
       return {
         month,
         year: this.year,
-        label: month + " " + this.day + "," + this.year,
+        label: month + " " + this.day + ", " + this.year,
       };
     },
     months() {
@@ -179,11 +178,9 @@ export default {
       //Returns pushed weeks
       return weeks;
     },
-
     firstWeekdayInMonth() {
       return new Date(this.year, this.monthIndex, 1).getDay() + 1;
     },
-
     daysInMonth() {
       //check if febuary is leap year
       const isFebruary = this.month === 2;
@@ -195,6 +192,9 @@ export default {
   },
 
   methods: {
+    selectDay(num) {
+      this.day = num;
+    },
     selectedMonth() {
       this.month = currentDate.month;
       this.year = currentDate.year;
@@ -266,16 +266,20 @@ a {
   color: whitesmoke;
 }
 .title {
-  font-size: 24px;
+  font-size: 20px;
   color: white;
   margin-right: 10px;
   margin-left: 10px;
   font-weight: 500;
+  width: 200px;
 }
 .arrow {
   font-size: 3em;
   margin: 5px;
   cursor: pointer;
+}
+.arrow:hover {
+  transform: scale(1.2);
 }
 .logo {
   height: 50px;
@@ -291,11 +295,19 @@ a {
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid rgb(143, 143, 143);
+  border: 1px solid rgb(143, 143, 143, 0.5);
+
+  /* margin: 2spx;
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.15);
+  border-radius: 0.25em; */
 }
 .day:hover {
   cursor: pointer;
-  background: #42b98325;
+  background: #42b98345;
   transition: 0.1s;
+}
+.today {
+  background: #42b983;
+  color: white;
 }
 </style>

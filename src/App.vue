@@ -2,21 +2,31 @@
 
 <template>
   <div id="app">
-    <CalendarOptions />
-    <Calendar />
+    <Event @datesChanged="updateEvent" />
+    <Calendar :start="start" :end="end" />
   </div>
 </template>
 
 
 
 <script>
-import CalendarOptions from "./components/CalendarOptions.vue";
+import Event from "./components/Event.vue";
 import Calendar from "./components/Calendar.vue";
 export default {
   name: "App",
+  data() {
+    return { start: null, end: null };
+  },
+
   components: {
+    Event,
     Calendar,
-    CalendarOptions,
+  },
+  methods: {
+    updateDates(start, end) {
+      this.start = start;
+      this.end = end;
+    },
   },
 };
 </script>
@@ -34,7 +44,7 @@ export default {
   text-align: center;
   color: #2c3e50;
   display: flex;
-
-  height: 100vh;
+  margin: 10px;
+  height: 95vh;
 }
 </style>
